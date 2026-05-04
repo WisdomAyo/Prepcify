@@ -1,0 +1,2958 @@
+openapi: 3.0.3
+info:
+  title: Prepcify API
+  version: v1
+  description: |
+    Official API reference for the Prepcify backend. All endpoints are mounted under /api/v1.
+servers:
+  - url: https://api.example.com/api/v1
+    description: Production API server
+  - url: http://localhost:8000/api/v1
+    description: Local development server
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Bearer
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Unauthenticated.
+      required:
+        - message
+    GenericMessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Operation completed successfully.
+      required:
+        - message
+    UserType:
+      type: string
+      enum:
+        - student
+        - parent
+        - admin
+    AttemptType:
+      type: string
+      enum:
+        - mcq
+        - short_answer
+        - essay
+        - case_study_part
+        - listening
+        - speaking
+        - writing
+    AttemptContext:
+      type: string
+      enum:
+        - drill
+        - mock_exam
+        - ai_tutor_challenge
+        - diagnostic
+        - duel
+        - live_battle
+    QuestionFormat:
+      type: string
+      enum:
+        - mcq
+        - theory
+        - structured
+    ReportReason:
+      type: string
+      enum:
+        - incorrect_answer
+        - typo_or_grammar
+        - outdated_content
+        - diagram_issue
+        - other
+    ParentLinkStatus:
+      type: string
+      enum:
+        - pending
+        - active
+        - revoked
+    ExamCategory:
+      type: string
+      enum:
+        - secondary_ng
+        - professional
+        - international
+    SubscriptionStatus:
+      type: string
+      enum:
+        - active
+        - past_due
+        - cancelled
+        - expired
+        - trialing
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        email:
+          type: string
+          format: email
+          example: student@example.com
+        phone:
+          type: string
+          example: +2348012345678
+        display_name:
+          type: string
+          example: Bunmi A.
+        first_name:
+          type: string
+          example: Bunmi
+        last_name:
+          type: string
+          example: Adebola
+        avatar_url:
+          type: string
+          nullable: true
+          example: https://cdn.example.com/avatars/42.png
+        timezone:
+          type: string
+          example: Africa/Lagos
+        locale:
+          type: string
+          example: en_NG
+        user_type:
+          $ref: '#/components/schemas/UserType'
+        email_verified_at:
+          type: string
+          format: date-time
+          nullable: true
+        phone_verified_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_login_at:
+          type: string
+          format: date-time
+          nullable: true
+        student_profile:
+          $ref: '#/components/schemas/StudentProfile'
+        parent_profile:
+          $ref: '#/components/schemas/ParentProfile'
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - email
+        - display_name
+        - timezone
+        - locale
+        - user_type
+    StudentProfile:
+      type: object
+      properties:
+        target_exam_date:
+          type: string
+          format: date
+          nullable: true
+        target_score:
+          type: integer
+          nullable: true
+        daily_goal_minutes:
+          type: integer
+          nullable: true
+        school:
+          type: string
+          nullable: true
+        grade_level:
+          type: string
+          nullable: true
+        onboarding_completed_at:
+          type: string
+          format: date-time
+          nullable: true
+    ParentProfile:
+      type: object
+      properties:
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+    UserContext:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          example: 42
+        exam_body_ids:
+          type: array
+          items:
+            type: integer
+          example: [1, 2]
+        exam_subject_ids:
+          type: array
+          items:
+            type: integer
+          example: [4, 9]
+        subject_ids:
+          type: array
+          items:
+            type: integer
+          example: [3, 5]
+        topic_ids:
+          type: array
+          items:
+            type: integer
+          example: [23, 29, 31]
+        nearest_exam_date:
+          type: string
+          nullable: true
+          format: date
+          example: 2025-08-10
+        daily_minutes:
+          type: integer
+          example: 30
+        timezone:
+          type: string
+          example: Africa/Lagos
+        locale:
+          type: string
+          example: en_NG
+        user_type:
+          $ref: '#/components/schemas/UserType'
+        permissions:
+          type: array
+          items:
+            type: string
+          example: ["questions.view", "subscription.start"]
+        entitlements:
+          type: object
+          additionalProperties: true
+          example:
+            can_start_tutor: true
+    ExamBody:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        code:
+          type: string
+          example: waec
+        name:
+          type: string
+          example: WAEC
+        category:
+          $ref: '#/components/schemas/ExamCategory'
+        description:
+          type: string
+          nullable: true
+        logo_url:
+          type: string
+          nullable: true
+        sort_order:
+          type: integer
+          example: 10
+      required:
+        - id
+        - code
+        - name
+        - category
+    Subject:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 11
+        subject_id:
+          type: integer
+          example: 3
+        name:
+          type: string
+          example: Mathematics
+        slug:
+          type: string
+          example: mathematics
+        is_compulsory:
+          type: boolean
+          example: true
+        syllabus_version:
+          type: string
+          example: 2024
+        syllabus_effective_from:
+          type: string
+          format: date
+          example: 2024-01-01
+        syllabus_effective_to:
+          type: string
+          format: date
+          nullable: true
+      required:
+        - id
+        - subject_id
+        - name
+        - slug
+        - is_compulsory
+        - syllabus_version
+        - syllabus_effective_from
+    Topic:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 19
+        name:
+          type: string
+          example: Algebra
+        slug:
+          type: string
+          example: algebra
+        path:
+          type: string
+          example: "maths/algebra"
+        depth:
+          type: integer
+          example: 2
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/Topic'
+      required:
+        - id
+        - name
+        - slug
+        - path
+        - depth
+    QuestionOption:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 132
+        label:
+          type: string
+          example: A
+        body:
+          type: string
+          example: 12
+        sort_order:
+          type: integer
+          example: 1
+      required:
+        - id
+        - label
+        - body
+        - sort_order
+    QuestionDiagramLabel:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 7
+        label:
+          type: string
+          example: A
+        x_pct:
+          type: number
+          format: float
+          example: 23.5
+        y_pct:
+          type: number
+          format: float
+          example: 51.0
+      required:
+        - id
+        - label
+        - x_pct
+        - y_pct
+    QuestionDiagram:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 21
+        storage_path:
+          type: string
+          example: /images/diagrams/chemistry.png
+        alt_text:
+          type: string
+          nullable: true
+          example: Reaction diagram for question 12
+        sort_order:
+          type: integer
+          example: 1
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionDiagramLabel'
+      required:
+        - id
+        - storage_path
+        - alt_text
+        - sort_order
+    SubQuestion:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 201
+        label:
+          type: string
+          example: i
+        stem:
+          type: string
+          example: Calculate the value of x.
+        marks:
+          type: integer
+          example: 2
+        sort_order:
+          type: integer
+          example: 1
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionOption'
+        correct_option_id:
+          type: integer
+          nullable: true
+      required:
+        - id
+        - label
+        - stem
+        - marks
+        - sort_order
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 432
+        format:
+          $ref: '#/components/schemas/QuestionFormat'
+        status:
+          type: string
+          example: published
+        stem:
+          type: string
+          example: What is the next number in the series?
+        explanation:
+          type: string
+          nullable: true
+          example: The pattern increments by 3 each time.
+        marks:
+          type: integer
+          example: 2
+        year:
+          type: integer
+          example: 2024
+        correct_option_id:
+          type: integer
+          nullable: true
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionOption'
+        sub_questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubQuestion'
+        diagrams:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionDiagram'
+        topics:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 13
+              name:
+                type: string
+                example: Geometry
+            required:
+              - id
+              - name
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["algebra", "sequence"]
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - format
+        - status
+        - stem
+        - marks
+        - year
+    QuestionListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 432
+        format:
+          $ref: '#/components/schemas/QuestionFormat'
+        stem:
+          type: string
+          example: What is the next number in the series?
+        marks:
+          type: integer
+          example: 2
+        year:
+          type: integer
+          example: 2024
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionOption'
+        diagrams:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionDiagram'
+        topics:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              name:
+                type: string
+            required:
+              - id
+              - name
+        tags:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - format
+        - stem
+        - marks
+        - year
+    PaginationLinks:
+      type: object
+      properties:
+        first:
+          type: string
+          nullable: true
+        next:
+          type: string
+          nullable: true
+        previous:
+          type: string
+          nullable: true
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+          nullable: true
+        last_page:
+          type: integer
+          nullable: true
+        total:
+          type: integer
+          nullable: true
+        path:
+          type: string
+          nullable: true
+        per_page:
+          type: integer
+          nullable: true
+        from:
+          type: integer
+          nullable: true
+        to:
+          type: integer
+          nullable: true
+        count:
+          type: integer
+          nullable: true
+        current_cursor:
+          type: string
+          nullable: true
+        next_cursor:
+          type: string
+          nullable: true
+        previous_cursor:
+          type: string
+          nullable: true
+    QuestionListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionListItem'
+        links:
+          $ref: '#/components/schemas/PaginationLinks'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+      required:
+        - data
+    Attempt:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1209
+        question_id:
+          type: integer
+          nullable: true
+        sub_question_id:
+          type: integer
+          nullable: true
+        attempt_type:
+          $ref: '#/components/schemas/AttemptType'
+        selected_option_id:
+          type: integer
+          nullable: true
+        is_correct:
+          type: boolean
+          nullable: true
+        marks_awarded:
+          type: number
+          format: float
+          nullable: true
+        marks_available:
+          type: number
+          format: float
+          nullable: true
+        graded_by:
+          type: string
+          nullable: true
+        context:
+          $ref: '#/components/schemas/AttemptContext'
+        client_uuid:
+          type: string
+          format: uuid
+        attempted_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - attempt_type
+        - context
+        - client_uuid
+    AttemptResult:
+      allOf:
+        - $ref: '#/components/schemas/Attempt'
+    ExamPaper:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 13
+        exam_body_id:
+          type: integer
+          example: 1
+        subject_id:
+          type: integer
+          example: 3
+        year:
+          type: integer
+          example: 2024
+        paper_number:
+          type: integer
+          example: 2
+        paper_type:
+          type: string
+          example: practice
+        title:
+          type: string
+          example: May 2024 Paper 2
+        duration_minutes:
+          type: integer
+          example: 150
+        total_marks:
+          type: integer
+          example: 100
+        instructions_general:
+          type: string
+          nullable: true
+        syllabus_version:
+          type: string
+          nullable: true
+      required:
+        - id
+        - exam_body_id
+        - subject_id
+        - year
+        - paper_number
+        - paper_type
+        - title
+        - duration_minutes
+        - total_marks
+    UserStreak:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          example: 42
+        current_streak:
+          type: integer
+          example: 7
+        longest_streak:
+          type: integer
+          example: 12
+        last_active_date:
+          type: string
+          format: date
+          nullable: true
+        freezes_available:
+          type: integer
+          example: 1
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - user_id
+        - current_streak
+        - longest_streak
+    Achievement:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 5
+        code:
+          type: string
+          example: algebra_master
+        name:
+          type: string
+          example: Algebra Mastery
+        description:
+          type: string
+          nullable: true
+        icon_url:
+          type: string
+          nullable: true
+        exam_body_id:
+          type: integer
+          nullable: true
+        subject_id:
+          type: integer
+          nullable: true
+        criteria:
+          type: object
+          additionalProperties: true
+      required:
+        - id
+        - code
+        - name
+    LeagueStanding:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 11
+        user_id:
+          type: integer
+          example: 42
+        league_group_id:
+          type: integer
+          example: 2
+        xp_in_period:
+          type: integer
+          example: 150
+        rank:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - user_id
+        - league_group_id
+        - xp_in_period
+    AttemptInput:
+      type: object
+      properties:
+        question_id:
+          type: integer
+          nullable: true
+        sub_question_id:
+          type: integer
+          nullable: true
+        attempt_type:
+          $ref: '#/components/schemas/AttemptType'
+        selected_option_id:
+          type: integer
+          nullable: true
+        response_text:
+          type: string
+          nullable: true
+        response_media_url:
+          type: string
+          format: uri
+          nullable: true
+        time_spent_ms:
+          type: integer
+          minimum: 0
+        context:
+          $ref: '#/components/schemas/AttemptContext'
+        client_uuid:
+          type: string
+          format: uuid
+        attempted_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - attempt_type
+        - time_spent_ms
+        - context
+        - client_uuid
+      description: |
+        Exactly one of question_id or sub_question_id must be provided.
+    AttemptBatchInput:
+      type: object
+      properties:
+        attempts:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: '#/components/schemas/AttemptInput'
+      required:
+        - attempts
+    MasterySummary:
+      type: object
+      properties:
+        mastery_score:
+          type: number
+          format: float
+          example: 0.73
+        confidence:
+          type: number
+          format: float
+          example: 0.85
+        topics_covered:
+          type: integer
+          example: 6
+        total_topics:
+          type: integer
+          example: 12
+      required:
+        - mastery_score
+        - confidence
+        - topics_covered
+        - total_topics
+    StudySession:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 18
+        context:
+          $ref: '#/components/schemas/AttemptContext'
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        questions_attempted:
+          type: integer
+          example: 12
+        questions_correct:
+          type: integer
+          example: 9
+        xp_earned:
+          type: integer
+          example: 150
+      required:
+        - id
+        - context
+        - started_at
+    MockExam:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 3
+        exam_body_id:
+          type: integer
+          example: 1
+        subject_ids:
+          type: array
+          items:
+            type: integer
+          example: [4, 7]
+        status:
+          type: string
+          example: in_progress
+        started_at:
+          type: string
+          format: date-time
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        total_score:
+          type: integer
+          nullable: true
+        max_score:
+          type: integer
+          nullable: true
+        percentile:
+          type: number
+          format: float
+          nullable: true
+        breakdown:
+          type: object
+          additionalProperties: true
+          example:
+            algebra: { correct: 3, attempted: 5 }
+      required:
+        - id
+        - exam_body_id
+        - subject_ids
+        - status
+        - started_at
+    PlanPrice:
+      type: object
+      properties:
+        currency:
+          type: string
+          example: NGN
+        amount_minor:
+          type: integer
+          example: 450000
+        interval:
+          type: string
+          example: monthly
+      required:
+        - currency
+        - amount_minor
+        - interval
+    Plan:
+      type: object
+      properties:
+        code:
+          type: string
+          example: premium_monthly
+        name:
+          type: string
+          example: Premium
+        description:
+          type: string
+          nullable: true
+        entitlements:
+          type: object
+          additionalProperties: true
+          example:
+            tutor_sessions: 10
+            study_plans: true
+        sort_order:
+          type: integer
+          example: 1
+        prices:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanPrice'
+      required:
+        - code
+        - name
+        - entitlements
+        - sort_order
+        - prices
+    SubscriptionPlan:
+      type: object
+      properties:
+        code:
+          type: string
+          example: premium_monthly
+        name:
+          type: string
+          example: Premium
+        entitlements:
+          type: object
+          additionalProperties: true
+      required:
+        - code
+        - name
+        - entitlements
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 28
+        status:
+          $ref: '#/components/schemas/SubscriptionStatus'
+        started_at:
+          type: string
+          format: date-time
+          example: 2025-01-01T00:00:00Z
+        current_period_start:
+          type: string
+          format: date-time
+          example: 2025-01-01T00:00:00Z
+        current_period_end:
+          type: string
+          format: date-time
+          example: 2025-02-01T00:00:00Z
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
+        plan:
+          $ref: '#/components/schemas/SubscriptionPlan'
+      required:
+        - id
+        - status
+        - started_at
+        - current_period_start
+        - current_period_end
+    ParentLinkPermissions:
+      type: object
+      properties:
+        view_progress:
+          type: boolean
+        view_attempts:
+          type: boolean
+        receive_reports:
+          type: boolean
+    ParentLink:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 9
+        status:
+          $ref: '#/components/schemas/ParentLinkStatus'
+        invited_by:
+          type: integer
+          example: 1
+        permissions:
+          $ref: '#/components/schemas/ParentLinkPermissions'
+        linked_at:
+          type: string
+          format: date-time
+          nullable: true
+        parent:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 7
+            display_name:
+              type: string
+              example: Yemi K.
+          required:
+            - id
+            - display_name
+        student:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 42
+            display_name:
+              type: string
+              example: Ola M.
+          required:
+            - id
+            - display_name
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - status
+        - invited_by
+        - permissions
+        - parent
+        - student
+    StudentSummary:
+      type: object
+      properties:
+        student_id:
+          type: integer
+          example: 42
+        display_name:
+          type: string
+          example: Ola M.
+        linked_at:
+          type: string
+          format: date-time
+          nullable: true
+        permissions:
+          $ref: '#/components/schemas/ParentLinkPermissions'
+        streak:
+          type: integer
+          nullable: true
+          example: 8
+        xp:
+          type: integer
+          nullable: true
+          example: 1480
+      required:
+        - student_id
+        - display_name
+        - permissions
+    TutorSession:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 12
+        started_at:
+          type: string
+          format: date-time
+          example: 2025-03-03T08:00:00Z
+        message_count:
+          type: integer
+          example: 1
+      required:
+        - id
+        - started_at
+        - message_count
+    TutorMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 155
+        role:
+          type: string
+          example: assistant
+        content:
+          type: string
+          example: The answer is 12 because...
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - role
+        - content
+        - created_at
+    StudyPlan:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 14
+        content:
+          type: string
+          example: "Focus on algebra and data interpretation for the next six weeks."
+        generated_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - content
+        - generated_at
+        - expires_at
+    CheckoutResponse:
+      type: object
+      properties:
+        authorization_url:
+          type: string
+          format: uri
+          nullable: true
+        reference:
+          type: string
+          example: lumio_1a2b3c...
+      required:
+        - authorization_url
+        - reference
+    ImpersonationToken:
+      type: object
+      properties:
+        token:
+          type: string
+          example: 095e...a3f7
+        expires_at:
+          type: string
+          format: date-time
+          example: 2025-03-15T11:05:00Z
+      required:
+        - token
+        - expires_at
+  responses:
+    UnauthorizedError:
+      description: Authentication required.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenError:
+      description: Permission denied.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundError:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    TooManyRequestsError:
+      description: Rate limit exceeded.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register a new account.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - password_confirmation
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                password_confirmation:
+                  type: string
+                display_name:
+                  type: string
+                  maxLength: 100
+                first_name:
+                  type: string
+                  maxLength: 100
+                last_name:
+                  type: string
+                  maxLength: 100
+                user_type:
+                  $ref: '#/components/schemas/UserType'
+      responses:
+        '201':
+          description: Registered user with bearer token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  id:
+                    type: integer
+                  email:
+                    type: string
+                  display_name:
+                    type: string
+                  user_type:
+                    $ref: '#/components/schemas/UserType'
+                required:
+                  - token
+        '422':
+          description: Validation error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Authenticate with email or phone.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - identifier
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                  example: +2348012345678
+                identifier:
+                  type: string
+                  description: Email or phone value normalized by the API.
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Authenticated user with bearer token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  id:
+                    type: integer
+                  email:
+                    type: string
+                  display_name:
+                    type: string
+                  user_type:
+                    $ref: '#/components/schemas/UserType'
+                required:
+                  - token
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Revoke the current bearer token.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logged out successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericMessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /auth/password/forgot:
+    post:
+      tags:
+        - Auth
+      summary: Send password reset instructions.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Password reset flow initiated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericMessageResponse'
+  /auth/password/reset:
+    post:
+      tags:
+        - Auth
+      summary: Reset password using a valid token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - email
+                - password
+                - password_confirmation
+              properties:
+                token:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                password_confirmation:
+                  type: string
+      responses:
+        '200':
+          description: Password reset completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericMessageResponse'
+  /auth/email/verify/{id}/{hash}:
+    get:
+      tags:
+        - Auth
+      summary: Verify a user's email address.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: hash
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Email verified successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericMessageResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Return the authenticated user's profile.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Authenticated user profile.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /auth/phone/otp/send:
+    post:
+      tags:
+        - Auth
+      summary: Send an OTP to the authenticated user's phone.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+              properties:
+                phone:
+                  type: string
+                  example: +2348012345678
+      responses:
+        '200':
+          description: OTP send request accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericMessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /auth/phone/otp/verify:
+    post:
+      tags:
+        - Auth
+      summary: Verify OTP and update phone verification state.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+                - code
+              properties:
+                phone:
+                  type: string
+                  example: +2348012345678
+                code:
+                  type: string
+                  pattern: '^\\d{6}$'
+      responses:
+        '200':
+          description: Verified OTP and returned updated user.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  email:
+                    type: string
+                  display_name:
+                    type: string
+                  user_type:
+                    $ref: '#/components/schemas/UserType'
+                required:
+                  - id
+                  - email
+                  - display_name
+                  - user_type
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /exams:
+    get:
+      tags:
+        - Exams
+      summary: List available exam bodies grouped by category.
+      parameters:
+        - in: query
+          name: category
+          schema:
+            $ref: '#/components/schemas/ExamCategory'
+          description: Filter exam bodies by category.
+      responses:
+        '200':
+          description: Exam body groups keyed by category.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ExamBody'
+                required:
+                  - data
+  /exams/{code}/subjects:
+    get:
+      tags:
+        - Exams
+      summary: List subjects for an exam body code.
+      parameters:
+        - in: path
+          name: code
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Subjects for the exam body.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Subject'
+                required:
+                  - data
+  /exams/{code}/subjects/{subjectId}:
+    get:
+      tags:
+        - Exams
+      summary: Retrieve topic tree for a subject.
+      parameters:
+        - in: path
+          name: code
+          schema:
+            type: string
+          required: true
+        - in: path
+          name: subjectId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Topic tree.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Topic'
+                required:
+                  - data
+  /onboarding/exam-targets:
+    post:
+      tags:
+        - Onboarding
+      summary: Set exam target bodies and target date.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - exam_body_ids
+                - target_date
+              properties:
+                exam_body_ids:
+                  type: array
+                  items:
+                    type: integer
+                target_date:
+                  type: string
+                  format: date
+      responses:
+        '200':
+          description: Exam targets updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericMessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /onboarding/subjects:
+    post:
+      tags:
+        - Onboarding
+      summary: Choose active subjects for onboarding.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - selections
+              properties:
+                selections:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - exam_body_id
+                      - subject_id
+                    properties:
+                      exam_body_id:
+                        type: integer
+                      subject_id:
+                        type: integer
+      responses:
+        '200':
+          description: Subject selections updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericMessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /onboarding/complete:
+    post:
+      tags:
+        - Onboarding
+      summary: Mark onboarding complete.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Onboarding completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericMessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /me/context:
+    get:
+      tags:
+        - Me
+      summary: Resolve the authenticated user's study context.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User context payload.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserContext'
+  /me/data-export:
+    post:
+      tags:
+        - Me
+      summary: Queue a user data export.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Export job queued.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: queued
+                required:
+                  - status
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /admin/impersonation/start:
+    post:
+      tags:
+        - Admin
+      summary: Create a temporary impersonation token.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - target_user_id
+              properties:
+                target_user_id:
+                  type: integer
+      responses:
+        '200':
+          description: Impersonation token created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImpersonationToken'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /admin/impersonation/end:
+    post:
+      tags:
+        - Admin
+      summary: Revoke an impersonation token.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Token revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericMessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /questions:
+    get:
+      tags:
+        - Questions
+      summary: List published questions for the authenticated user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: topic_id
+          schema:
+            type: integer
+        - in: query
+          name: format
+          schema:
+            $ref: '#/components/schemas/QuestionFormat'
+        - in: query
+          name: year
+          schema:
+            type: integer
+            minimum: 2000
+            maximum: 2099
+        - in: query
+          name: cursor
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paginated question list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /questions/{question}:
+    get:
+      tags:
+        - Questions
+      summary: Retrieve a single question with full details.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: question
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Detailed question payload.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Question'
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+  /questions/{question}/report:
+    post:
+      tags:
+        - Questions
+      summary: Report an issue with a question.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: question
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  $ref: '#/components/schemas/ReportReason'
+                detail:
+                  type: string
+                  maxLength: 1000
+      responses:
+        '201':
+          description: Question report submitted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericMessageResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /questions/{question}/similar:
+    get:
+      tags:
+        - Questions
+      summary: Get questions similar to the given question.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: question
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Similar questions list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /questions/{questionId}/explanation:
+    get:
+      tags:
+        - AI
+      summary: Stream explanation text events for a question.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: questionId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Server-sent events stream.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '503':
+          description: AI explanations temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /me/tutor/sessions:
+    post:
+      tags:
+        - AI
+      summary: Create a new AI tutor session.
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: New tutor session created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TutorSession'
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '503':
+          description: AI tutor feature unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags:
+        - AI
+      summary: Retrieve the authenticated user's tutor sessions.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Paginated tutor session list.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TutorSession'
+                  meta:
+                    type: object
+                    properties:
+                      current_page:
+                        type: integer
+                      last_page:
+                        type: integer
+                      total:
+                        type: integer
+                    required:
+                      - current_page
+                      - last_page
+                      - total
+                required:
+                  - data
+                  - meta
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /me/tutor/sessions/{sessionId}/messages:
+    get:
+      tags:
+        - AI
+      summary: List messages for a tutor session.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: sessionId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Tutor session messages.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TutorMessage'
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - AI
+      summary: Send a message to the tutor session and stream the response.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: sessionId
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  maxLength: 2000
+      responses:
+        '200':
+          description: Streamed tutor response.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '503':
+          description: AI tutor feature unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /me/study-plan:
+    get:
+      tags:
+        - AI
+      summary: Return the current generated study plan.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Study plan payload.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    oneOf:
+                      - $ref: '#/components/schemas/StudyPlan'
+                      - type: 'null'
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - AI
+      summary: Regenerate the user's study plan.
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: New study plan generated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/StudyPlan'
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '503':
+          description: AI study plan feature unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /attempts:
+    post:
+      tags:
+        - Attempts
+      summary: Record a single question attempt.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttemptInput'
+      responses:
+        '200':
+          description: Attempt recorded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Attempt'
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /attempts/batch:
+    post:
+      tags:
+        - Attempts
+      summary: Record multiple attempts in a batch.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttemptBatchInput'
+      responses:
+        '200':
+          description: Batch attempts recorded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Attempt'
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /me/mastery:
+    get:
+      tags:
+        - Mastery
+      summary: Get aggregated mastery by exam and subject.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Mastery summary.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      by_exam:
+                        type: object
+                        additionalProperties:
+                          $ref: '#/components/schemas/MasterySummary'
+                      by_subject:
+                        type: object
+                        additionalProperties:
+                          $ref: '#/components/schemas/MasterySummary'
+                    required:
+                      - by_exam
+                      - by_subject
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /me/mastery/topics/{topic}:
+    get:
+      tags:
+        - Mastery
+      summary: Get mastery details for a specific topic.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: topic
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Topic mastery details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      topic_id:
+                        type: integer
+                      topic_name:
+                        type: string
+                      mastery_score:
+                        type: number
+                        format: float
+                      confidence:
+                        type: number
+                        format: float
+                      attempts_count:
+                        type: integer
+                      correct_count:
+                        type: integer
+                      last_attempted_at:
+                        type: string
+                        format: date-time
+                        nullable: true
+                    required:
+                      - topic_id
+                      - topic_name
+                      - mastery_score
+                      - confidence
+                      - attempts_count
+                      - correct_count
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /me/sessions:
+    get:
+      tags:
+        - Sessions
+      summary: List recent study sessions.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Study session list.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StudySession'
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Sessions
+      summary: Start a new study session.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - context
+              properties:
+                context:
+                  $ref: '#/components/schemas/AttemptContext'
+      responses:
+        '200':
+          description: Study session created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/StudySession'
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /me/sessions/{studySession}/end:
+    post:
+      tags:
+        - Sessions
+      summary: End an active study session.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studySession
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Study session ended.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/StudySession'
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /me/mock-exams:
+    post:
+      tags:
+        - MockExam
+      summary: Start a new mock exam.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - exam_body_id
+                - subject_ids
+              properties:
+                exam_body_id:
+                  type: integer
+                subject_ids:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: Mock exam created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MockExam'
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /me/mock-exams/{mockExam}/next:
+    get:
+      tags:
+        - MockExam
+      summary: Retrieve the next question for an in-progress mock exam.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: mockExam
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Next question or no more questions.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    oneOf:
+                      - $ref: '#/components/schemas/Question'
+                      - type: 'null'
+                  message:
+                    type: string
+                    nullable: true
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /me/mock-exams/{mockExam}/submit:
+    post:
+      tags:
+        - MockExam
+      summary: Submit a mock exam for grading.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: mockExam
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Mock exam submitted and grading state returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MockExam'
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /plans:
+    get:
+      tags:
+        - Billing
+      summary: List available billing plans.
+      responses:
+        '200':
+          description: Active plans and pricing.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Plan'
+                required:
+                  - data
+  /webhooks/paystack:
+    post:
+      tags:
+        - Webhooks
+      summary: Receive Paystack webhook events.
+      parameters:
+        - in: header
+          name: X-Paystack-Signature
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Webhook accepted and queued.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: queued
+                required:
+                  - status
+        '401':
+          description: Invalid webhook signature.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /family/invite-new-student:
+    post:
+      tags:
+        - Family
+      summary: Invite a new student to the parent account.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - contact
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                contact:
+                  type: string
+                  maxLength: 255
+      responses:
+        '201':
+          description: Invite created with a share token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImpersonationToken'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /family/request-link:
+    post:
+      tags:
+        - Family
+      summary: Request a parent link to an existing student.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - student_id
+              properties:
+                student_id:
+                  type: integer
+      responses:
+        '200':
+          description: Parent link created or returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParentLink'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /parent/children:
+    get:
+      tags:
+        - Family
+      summary: List linked student summaries for the parent.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Parent dashboard children list.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StudentSummary'
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /parent/children/{studentId}:
+    get:
+      tags:
+        - Family
+      summary: Get a student summary for a parent.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          schema:
+            type: integer
+          required: true
+        - in: query
+          name: permission
+          schema:
+            type: string
+            example: view_progress
+          description: Permission scope to fetch summary for.
+      responses:
+        '200':
+          description: Student summary with permitted fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentSummary'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /parent/children/{studentId}/encouragement:
+    post:
+      tags:
+        - Family
+      summary: Send encouragement to a linked student.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  maxLength: 500
+      responses:
+        '200':
+          description: Encouragement request accepted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sent:
+                    type: boolean
+                    example: true
+                required:
+                  - sent
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+  /parent/children/{studentId}/subscription/start:
+    post:
+      tags:
+        - Billing
+      summary: Start a subscription on behalf of a linked student.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: studentId
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - plan_code
+                - currency
+                - interval
+              properties:
+                plan_code:
+                  type: string
+                currency:
+                  type: string
+                  minLength: 3
+                  maxLength: 3
+                interval:
+                  type: string
+                  enum:
+                    - monthly
+                    - yearly
+      responses:
+        '201':
+          description: Checkout session created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /me/family/pending:
+    get:
+      tags:
+        - Family
+      summary: List pending family link invitations for the authenticated student.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Pending parent links.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ParentLink'
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /me/family/claim-invite:
+    post:
+      tags:
+        - Family
+      summary: Claim an invite token as a student.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+                  minLength: 64
+                  maxLength: 64
+      responses:
+        '200':
+          description: Parent link claimed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParentLink'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /me/family/links/{linkId}/accept:
+    post:
+      tags:
+        - Family
+      summary: Accept a pending parent link as a student.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: linkId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Link accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParentLink'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /me/family/links/{linkId}/decline:
+    post:
+      tags:
+        - Family
+      summary: Decline a pending parent link.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: linkId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Link declined.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  declined:
+                    type: boolean
+                    example: true
+                required:
+                  - declined
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /me/family/links/{linkId}/revoke:
+    post:
+      tags:
+        - Family
+      summary: Revoke an existing parent link.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: linkId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Link revoked.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  revoked:
+                    type: boolean
+                    example: true
+                required:
+                  - revoked
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /me/family/links/{linkId}/permissions:
+    patch:
+      tags:
+        - Family
+      summary: Update permissions for a parent link.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: linkId
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                permissions:
+                  $ref: '#/components/schemas/ParentLinkPermissions'
+              required:
+                - permissions
+      responses:
+        '200':
+          description: Link permissions updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParentLink'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /me/subscription:
+    get:
+      tags:
+        - Billing
+      summary: Get the current active subscription.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current subscription or null.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subscription:
+                    oneOf:
+                      - $ref: '#/components/schemas/Subscription'
+                      - type: 'null'
+                required:
+                  - subscription
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - Billing
+      summary: Start a new subscription for the authenticated user.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - plan_code
+                - currency
+                - interval
+              properties:
+                plan_code:
+                  type: string
+                currency:
+                  type: string
+                  minLength: 3
+                  maxLength: 3
+                interval:
+                  type: string
+                  enum:
+                    - monthly
+                    - yearly
+      responses:
+        '201':
+          description: Subscription checkout created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /me/subscription/{subscriptionId}/cancel:
+    post:
+      tags:
+        - Billing
+      summary: Cancel an active subscription.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: subscriptionId
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Subscription cancelled.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Subscription'
+                required:
+                  - data
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'

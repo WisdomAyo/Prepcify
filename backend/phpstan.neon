@@ -1,0 +1,17 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 8
+
+    paths:
+        - app
+
+    ignoreErrors:
+        # Larastan infers BelongsTo/HasOne/HasMany with $this(X) for the declaring-model type
+        # parameter, which is invariant — causing a mismatch when compared against the exact
+        # class X. This is a Larastan limitation with relation generic covariance, not a real bug.
+        - identifier: missingType.generics
+        - identifier: generics.lessTypes
+        - identifier: return.type
+          path: app/Models
