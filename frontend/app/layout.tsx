@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { siteConfig } from "@/lib/site";
 import { QueryProvider } from "@/components/providers";
 import "./globals.css";
@@ -77,6 +78,7 @@ export default function RootLayout({
           Skip to content
         </a>
         <QueryProvider>{children}</QueryProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
