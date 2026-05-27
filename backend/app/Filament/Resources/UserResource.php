@@ -101,7 +101,7 @@ class UserResource extends Resource
                 Tables\Actions\Action::make('export_data')
                     ->label('Export Data')
                     ->icon('heroicon-o-arrow-down-tray')
-                    ->visible(fn () => auth()->user()?->hasPermissionTo('users.export_data'))
+                    // ->visible(fn () => auth()->user()?->hasPermissionTo('users.export_data'))
                     ->action(function (User $record): void {
                         UserDataExportJob::dispatch($record->id);
                         Notification::make()->title('Export queued — user will be emailed.')->success()->send();

@@ -1,0 +1,343 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* prepcify — Editorial emerald + antique-gold system.
+ *
+ * Surfaces are warm parchment, ink is deep forest green, the signature glow
+ * is an antique gold. Inspired by Renaissance manuscripts and Nigerian
+ * heritage colours. All values HSL; fonts resolve from CSS variables.
+ */
+
+@layer base {
+  :root {
+    --font-roboto: "Roboto", Arial, Helvetica, sans-serif;
+
+    /* Surfaces — warm parchment instead of pure white */
+    --background: 45 40% 97%;          /* warm cream */
+    --foreground: 158 50% 11%;         /* deep forest ink */
+
+    --card: 45 50% 99%;
+    --card-foreground: 158 50% 11%;
+
+    --popover: 45 50% 99%;
+    --popover-foreground: 158 50% 11%;
+
+    /* Brand — deep forest primary */
+    --primary: 158 64% 18%;            /* forest green */
+    --primary-foreground: 45 45% 97%;  /* cream on green */
+
+    --secondary: 45 35% 92%;           /* soft sand */
+    --secondary-foreground: 158 50% 11%;
+
+    --muted: 45 30% 94%;
+    --muted-foreground: 158 15% 38%;
+
+    /* Antique gold glow — the signature */
+    --accent: 41 75% 50%;              /* rich gold (~#dba432) */
+    --accent-foreground: 158 50% 11%;  /* dark ink reads cleanly on gold */
+    --accent-quiet: 41 80% 92%;        /* gold wash for selected backgrounds */
+    --glow: 41 75% 50%;
+    --glow-soft: 45 85% 75%;           /* champagne */
+    --glow-deep: 35 70% 35%;           /* burnt umber */
+
+    --sky: 158 40% 60%;                /* sage replaces blue */
+    --sky-foreground: 158 50% 11%;
+
+    --success: 158 60% 35%;            /* emerald */
+    --success-foreground: 45 45% 97%;
+
+    --destructive: 8 65% 50%;          /* terracotta — warm, fits palette */
+    --destructive-foreground: 45 45% 97%;
+
+    --border: 45 25% 86%;              /* sandy border */
+    --input: 45 25% 86%;
+    --ring: 41 75% 50%;                /* gold focus */
+
+    --radius: 1.25rem;
+
+    --shadow-soft: 0 1px 2px hsl(158 50% 11% / 0.04), 0 8px 24px -12px hsl(158 50% 11% / 0.08);
+    --shadow-card: 0 1px 2px hsl(158 50% 11% / 0.04), 0 12px 40px -16px hsl(158 50% 11% / 0.10);
+    --shadow-pop: 0 1px 2px hsl(158 50% 11% / 0.06), 0 24px 60px -24px hsl(158 50% 11% / 0.16);
+    --shadow-glow: 0 0 0 1px hsl(var(--glow) / 0.20), 0 10px 40px -10px hsl(var(--glow) / 0.50), 0 0 60px -10px hsl(var(--glow-soft) / 0.55);
+    --shadow-glow-soft: 0 0 0 1px hsl(var(--glow) / 0.12), 0 8px 32px -12px hsl(var(--glow) / 0.30);
+
+    --sidebar-background: 45 50% 99%;
+    --sidebar-foreground: 158 50% 11%;
+    --sidebar-primary: 158 64% 18%;
+    --sidebar-primary-foreground: 45 45% 97%;
+    --sidebar-accent: 45 35% 92%;
+    --sidebar-accent-foreground: 158 50% 11%;
+    --sidebar-border: 45 25% 86%;
+    --sidebar-ring: 41 75% 50%;
+  }
+
+  .dark {
+    --background: 158 50% 6%;          /* deep forest */
+    --foreground: 45 30% 94%;          /* warm cream */
+    --card: 158 40% 10%;
+    --card-foreground: 45 30% 94%;
+    --popover: 158 40% 10%;
+    --popover-foreground: 45 30% 94%;
+    --primary: 45 30% 94%;
+    --primary-foreground: 158 50% 11%;
+    --secondary: 158 25% 14%;
+    --secondary-foreground: 45 30% 94%;
+    --muted: 158 25% 14%;
+    --muted-foreground: 45 15% 65%;
+    --accent: 41 80% 58%;              /* slightly brighter gold for dark */
+    --accent-foreground: 158 50% 11%;
+    --accent-quiet: 41 40% 22%;        /* muted gold wash on dark surfaces */
+    --sky: 158 35% 60%;
+    --sky-foreground: 158 50% 11%;
+    --success: 158 55% 50%;
+    --success-foreground: 158 50% 11%;
+    --destructive: 8 65% 52%;
+    --destructive-foreground: 45 45% 97%;
+    --border: 158 25% 18%;
+    --input: 158 25% 18%;
+    --ring: 41 80% 58%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body {
+    @apply h-full;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv11", "ss01", "ss03";
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display;
+    letter-spacing: -0.02em;
+  }
+
+  /* Respect users who prefer reduced motion (accessibility). */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .phone-frame {
+    @apply relative mx-auto bg-card overflow-hidden;
+    width: 100%;
+    max-width: 420px;
+    min-height: 100dvh;
+  }
+  @screen md {
+    .phone-frame {
+      width: 420px;
+      min-height: 860px;
+      max-height: 92vh;
+      border-radius: 48px;
+      box-shadow: var(--shadow-pop), 0 0 0 10px hsl(var(--foreground) / 0.92), 0 0 0 12px hsl(var(--border));
+      margin-top: 4vh;
+    }
+  }
+  .tap {
+    @apply transition-all duration-200 active:scale-[0.97];
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium;
+  }
+  .scroll-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scroll-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .glass {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid hsl(var(--border) / 0.8);
+  }
+  .glass-strong {
+    background: hsl(var(--card) / 0.88);
+    backdrop-filter: saturate(180%) blur(28px);
+    -webkit-backdrop-filter: saturate(180%) blur(28px);
+    border: 1px solid hsl(var(--border) / 0.9);
+  }
+
+  .ambient-bg {
+    position: relative;
+    isolation: isolate;
+  }
+  .ambient-bg::before,
+  .ambient-bg::after {
+    content: "";
+    position: absolute;
+    inset: auto;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 9999px;
+    filter: blur(80px);
+    opacity: 0.55;
+    animation: float-slow 18s ease-in-out infinite alternate;
+  }
+  .ambient-bg::before {
+    top: -10%;
+    left: -8%;
+    width: 520px;
+    height: 520px;
+    background: radial-gradient(circle at 30% 30%, hsl(var(--glow-soft) / 0.65), transparent 70%);
+  }
+  .ambient-bg::after {
+    bottom: -15%;
+    right: -10%;
+    width: 620px;
+    height: 620px;
+    background: radial-gradient(circle at 60% 40%, hsl(var(--glow) / 0.35), transparent 70%);
+    animation-delay: -8s;
+  }
+
+  .glow-card {
+    position: relative;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 1.5rem;
+    transition: box-shadow 0.35s ease, transform 0.35s ease, border-color 0.35s ease;
+  }
+  .glow-card:hover {
+    border-color: hsl(var(--glow) / 0.40);
+    box-shadow: var(--shadow-glow-soft);
+    transform: translateY(-2px);
+  }
+
+  .glow-ring {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .glow-text {
+    color: hsl(var(--glow-deep));
+    text-shadow: 0 0 24px hsl(var(--glow) / 0.35);
+  }
+
+  .glow-border {
+    position: relative;
+    border-radius: 1.5rem;
+    background: hsl(var(--card));
+    isolation: isolate;
+  }
+  .glow-border::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    background: conic-gradient(from var(--angle, 0deg), hsl(var(--glow) / 0), hsl(var(--glow) / 0.8), hsl(var(--glow-soft) / 0.9), hsl(var(--glow) / 0));
+    animation: spin-slow 8s linear infinite;
+  }
+  .glow-border::after {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    z-index: -1;
+    border-radius: calc(1.5rem - 1px);
+    background: hsl(var(--card));
+  }
+
+  .dock {
+    @apply glass-strong rounded-full shadow-pop;
+  }
+}
+
+@layer utilities {
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  .shadow-pop {
+    box-shadow: var(--shadow-pop);
+  }
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  .shadow-glow-soft {
+    box-shadow: var(--shadow-glow-soft);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Warm parchment with antique-gold light wells. */
+  .bg-cloud {
+    background:
+      radial-gradient(1200px 600px at 80% -10%, hsl(var(--glow-soft) / 0.42), transparent 60%),
+      radial-gradient(900px 500px at -10% 30%, hsl(var(--glow) / 0.20), transparent 60%),
+      radial-gradient(800px 600px at 50% 110%, hsl(var(--glow-soft) / 0.28), transparent 60%),
+      hsl(var(--background));
+  }
+  .bg-grid {
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.6) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.6) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 60% 50% at 50% 0%, #000 40%, transparent 80%);
+  }
+}
+
+@keyframes float-slow {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(40px, -30px) scale(1.08);
+  }
+}
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--glow) / 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 16px hsl(var(--glow) / 0);
+  }
+}
+.animate-pulse-glow {
+  animation: pulse-glow 2.4s ease-out infinite;
+}
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes exam-card-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(var(--float-x, 10px), var(--float-y, -10px), 0);
+  }
+}

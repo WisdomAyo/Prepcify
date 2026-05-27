@@ -28,6 +28,7 @@ return [
         'users.grant_pro',
         'users.impersonate',
         'users.export_data',
+        
 
         // Exam bodies
         'exams.view',

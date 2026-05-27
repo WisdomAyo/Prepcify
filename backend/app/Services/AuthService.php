@@ -7,8 +7,10 @@ namespace App\Services;
 use App\Models\User;
 use App\Support\Enums\UserType;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -118,6 +120,67 @@ class AuthService
     public function me(User $user): User
     {
         $user->load(['studentProfile', 'parentProfile']);
+
+        return $user;
+    }
+
+    /**
+     * Patch the authenticated user's profile fields.
+     *
+     * @param  array<string, mixed>  $validated
+     */
+    public function updateProfile(User $user, array $validated): User
+    {
+        $allowed = [
+            'display_name',
+            'first_name',
+            'last_name',
+            'phone',
+            'country',
+            'state',
+            'city',
+            'avatar_url',
+            'timezone',
+            'locale',
+        ];
+
+        $changes = array_intersect_key($validated, array_flip($allowed));
+
+        if ($changes !== []) {
+            $user->update($changes);
+        }
+
+        $user->refresh()->load(['studentProfile', 'parentProfile']);
+
+        return $user;
+    }
+
+    /**
+     * Store an avatar on the `public` disk under `avatars/<user>/...` and
+     * persist the resulting URL on the user. Replaces any prior avatar so
+     * orphaned files don't accumulate.
+     */
+    public function uploadAvatar(User $user, UploadedFile $file): User
+    {
+        // Delete previous avatar if it lives on our public disk.
+        if ($user->avatar_url) {
+            $prefix = rtrim(Storage::disk('public')->url(''), '/').'/';
+            if (str_starts_with($user->avatar_url, $prefix)) {
+                $previousPath = substr($user->avatar_url, strlen($prefix));
+                Storage::disk('public')->delete($previousPath);
+            }
+        }
+
+        $extension = $file->extension() ?: $file->getClientOriginalExtension() ?: 'jpg';
+        $filename = sprintf('%s.%s', Str::uuid()->toString(), $extension);
+        $path = $file->storeAs("avatars/{$user->id}", $filename, 'public');
+
+        if ($path === false) {
+            throw new \RuntimeException('Avatar storage failed.');
+        }
+
+        $user->update(['avatar_url' => Storage::disk('public')->url($path)]);
+        $user->refresh()->load(['studentProfile', 'parentProfile']);
 
         return $user;
     }

@@ -75,6 +75,8 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     // ── Me (auth) ────────────────────────────────────────────────────────────
     Route::middleware('auth:sanctum')->prefix('me')->name('me.')->group(function () {
         Route::get('context', [AuthController::class, 'context'])->name('context');
+        Route::patch('profile', [AuthController::class, 'updateProfile'])->name('profile.update');
+        Route::post('avatar', [AuthController::class, 'uploadAvatar'])->name('avatar.upload');
         Route::post('data-export', ExportController::class)->name('data-export');
     });
 

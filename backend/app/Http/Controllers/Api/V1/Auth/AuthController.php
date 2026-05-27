@@ -85,6 +85,35 @@ final class AuthController extends Controller
         return UserResource::make($service->me($user))->response();
     }
 
+    public function updateProfile(\App\Http\Requests\UpdateProfileRequest $request, AuthService $service): JsonResponse
+    {
+        $user = $request->user();
+        if (! $user instanceof User) {
+            abort(401);
+        }
+
+        $updated = $service->updateProfile($user, $request->validated());
+
+        return UserResource::make($updated)->response();
+    }
+
+    public function uploadAvatar(\App\Http\Requests\UploadAvatarRequest $request, AuthService $service): JsonResponse
+    {
+        $user = $request->user();
+        if (! $user instanceof User) {
+            abort(401);
+        }
+
+        $file = $request->file('avatar');
+        if (! $file instanceof \Illuminate\Http\UploadedFile) {
+            abort(422, 'No avatar file was uploaded.');
+        }
+
+        $updated = $service->uploadAvatar($user, $file);
+
+        return UserResource::make($updated)->response();
+    }
+
     public function sendOtp(SendOtpRequest $request, OtpService $service): JsonResponse
     {
         $user = $request->user();
